@@ -14,13 +14,12 @@ async def main():
     nc = await nats.connect(f"nats://{TOKEN}@{NATS_ADDRESS}:4222")
     js = nc.jetstream()
 
-    # probably need to change to ephemeral consumers
     # create consumers
     sub_x = await js.pull_subscribe("x","RPI-sub-x","RPI")
     sub_y = await js.pull_subscribe("y","RPI-sub-y","RPI")
     sub_z = await js.pull_subscribe("z","RPI-sub-z","RPI")
 
-    # consume data in 100-data-points tranches
+    # consume data in 500-data-points tranches
     while True:
         windowDf = pd.DataFrame(columns=['x', 'y', 'z'])
         x_data = await sub_x.fetch(500, timeout=None)

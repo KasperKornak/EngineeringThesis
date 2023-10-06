@@ -1,0 +1,66 @@
+version: '1.0'
+services:
+  nats:
+    image: nats:2-alpine
+    container_name: nats
+    ports:
+      - 4222:4222
+    command: --config /etc/nats/nats.conf
+    environment:
+      NATS_TOKEN: "${NATS_TOKEN}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz?js-enabled-only=true"]
+      interval: 5s
+      timeout: 10s
+    volumes:
+      - ./nats-config/nats.conf:/etc/nats/nats.conf
+      - ./nats-config/auth.conf:/etc/nats/auth.conf
+    networks:
+      - nats
+      
+
+  nats-box:
+    image: natsio/nats-box:latest
+    container_name: nats-box
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      NATS_TOKEN: "${NATS_TOKEN}"
+    entrypoint: >
+      /bin/sh -c "nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select
+      && nats stream add --config /root/rpi-stream.json
+      && /bin/sh -l"
+    tty: true
+    volumes:
+      - ./nats-config/rpi-stream.json:/root/rpi-stream.json
+    networks:
+      - nats
+
+  feature-extractor:
+    image: feature_extractor:1.0
+    container_name: feature_extractor
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      NATS_TOKEN: "${NATS_TOKEN}"
+      NATS_ADDRESS: "${NATS_ADDRESS}"
+    networks:
+      - nats
+    
+  ml_predictor:
+    image: ml_predictor:1.0
+    container_name: ml_predictor
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      NATS_TOKEN: "${NATS_TOKEN}"
+      NATS_ADDRESS: "${NATS_ADDRESS}"
+    networks:
+      - nats
+
+networks:
+  nats:
+    name: nats

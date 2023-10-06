@@ -168,7 +168,8 @@ This will NOT run the container in the detached mode. You will see outputs of th
 - [ ] Create an internet gateway for ACI environment.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
 - [ ] Upload mechanical models and blueprints.
-- [ ] Set up ML model and predictions container.
-- [ ] Check if sampling in data gathering is correct.
-- [ ] Create Docker Compose file to manage the container infra.
-- [ ] Set up correct NATS .conf files with balanced subject parameters.
+- [ ] Enable containers to still work after some time of inactivity.
+- [x] Set up ML model and predictions container.
+- [x] Check if sampling in data gathering is correct.
+- [x] Create Docker Compose file to manage the container infra.
+- [x] Set up correct NATS .conf files with balanced subject parameters.
