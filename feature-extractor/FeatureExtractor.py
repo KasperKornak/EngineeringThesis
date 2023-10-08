@@ -22,9 +22,14 @@ async def main():
     # consume data in 500-data-points tranches
     while True:
         windowDf = pd.DataFrame(columns=['x', 'y', 'z'])
-        x_data = await sub_x.fetch(500, timeout=None)
-        y_data = await sub_y.fetch(500, timeout=None)
-        z_data = await sub_z.fetch(500, timeout=None)
+        try:
+            x_data = await asyncio.wait_for(sub_x.fetch(500), timeout=300.0)
+            y_data = await asyncio.wait_for(sub_y.fetch(500), timeout=300.0)
+            z_data = await asyncio.wait_for(sub_z.fetch(500), timeout=300.0)
+        except asyncio.TimeoutError:
+            print("No new messages, sleeping for 2 minutes.")
+            await asyncio.sleep(120)  
+            continue  
 
         x_data_list = [m.data.decode() for m in x_data]
         y_data_list = [m.data.decode() for m in y_data]
@@ -47,6 +52,7 @@ async def main():
         base64_encoded_data = base64.b64encode(json_data.encode()).decode()
 
         _ = await js.publish("feats", f"{base64_encoded_data}".encode(),stream="RPI")
+        print("features published to NATS")
         
 
 if __name__ == '__main__':

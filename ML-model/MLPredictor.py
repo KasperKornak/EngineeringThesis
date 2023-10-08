@@ -1,5 +1,7 @@
 from keras.models import load_model
 import tensorflow as tf
+from nats.errors import TimeoutError
+import time
 import asyncio
 import os
 import nats
@@ -36,18 +38,23 @@ async def main():
     # create consumer
     sub_feats = await js.pull_subscribe("feats", "RPI-sub-feats", "RPI")
 
-    # predict the activity in main loop
     while True:
-        # consume latest features
-        messages = await sub_feats.fetch(1, timeout=None)
+        try:
+            # consume latest features with a timeout
+            messages = await asyncio.wait_for(sub_feats.fetch(1), timeout=300.0)
+        except asyncio.TimeoutError:
+            print("No new messages. Sleeping for 2 minutes...")
+            await asyncio.sleep(120)
+            continue 
 
-        # predict the activity 
+        # predict the activity for received features
         for message in messages:
-            # decode from base64, reconstruct DataFrame and convert to tensor
-            # for ML model
+            # decode from base64, reconstruct DataFrame, and convert to tensor
             decoded_feats = base64.b64decode(message.data)
             decoded_feats_str = decoded_feats.decode('utf-8')  
             featuresDf = pd.read_json(decoded_feats_str, orient='split')
+            if featuresDf.empty == True:
+                continue
             window_data = featuresDf.values.reshape(1, -1)
             window_data_tensor = tf.convert_to_tensor(window_data, dtype=tf.float64)
 
@@ -57,6 +64,8 @@ async def main():
 
             # send predicted label to predictions subject
             _ = await js.publish("predictions", f"{class_mapping[predicted_class]}".encode(), stream="RPI")
+            print("prediction sent to NATS")
+
 
 if __name__ == '__main__':
     asyncio.run(main())

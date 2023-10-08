@@ -166,9 +166,11 @@ This will NOT run the container in the detached mode. You will see outputs of th
 # TODO
 - [ ] Create scripts to automatically provision infrastructure.
 - [ ] Create an internet gateway for ACI environment.
+- [ ] Add TLS.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
+- [ ] Determine correct retention parameters for stream.
 - [ ] Upload mechanical models and blueprints.
-- [ ] Enable containers to still work after some time of inactivity.
+- [x] Enable containers to still work after some time of inactivity.
 - [x] Set up ML model and predictions container.
 - [x] Check if sampling in data gathering is correct.
 - [x] Create Docker Compose file to manage the container infra.
