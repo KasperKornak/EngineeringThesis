@@ -16,12 +16,15 @@ services:
     volumes:
       - ./nats-config/nats.conf:/etc/nats/nats.conf
       - ./nats-config/auth.conf:/etc/nats/auth.conf
+      - ./nats-config/server-cert.pem:/etc/nats/server-cert.pem
+      - ./nats-config/server-key.pem:/etc/nats/server-key.pem
+      - ./nats-config/CA.pem:/etc/nats/CA.pem
     networks:
       - nats
       
 
   nats-box:
-    image: natsio/nats-box:latest
+    image: natsio/nats-box:0.7.0
     container_name: nats-box
     restart: on-failure
     depends_on:
@@ -29,13 +32,17 @@ services:
         condition: service_healthy
     environment:
       NATS_TOKEN: "${NATS_TOKEN}"
+      GODEBUG: "x509ignoreCN=0"
     entrypoint: >
-      /bin/sh -c "nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select
-      && nats stream add --config /root/rpi-stream.json
+      /bin/sh -c "nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select --tlscert="/root/container3-cert.pem" --tlskey="/root/container3-key.pem" --tlsca="/root/CA.pem"
+      && nats stream add --config="/root/rpi-stream.json"
       && /bin/sh -l"
     tty: true
     volumes:
       - ./nats-config/rpi-stream.json:/root/rpi-stream.json
+      - ./nats-config/CA.pem:/root/CA.pem
+      - ./nats-config/container3-cert.pem:/root/container3-cert.pem
+      - ./nats-config/container3-key.pem:/root/container3-key.pem
     networks:
       - nats
 

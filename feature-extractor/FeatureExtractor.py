@@ -2,6 +2,7 @@ import asyncio
 import nats
 import pandas as pd
 import base64
+import ssl
 import os
 from SignalFeatures import *
 
@@ -11,7 +12,15 @@ NATS_ADDRESS = os.getenv('NATS_ADDRESS')
 
 # async communication needed for NATS
 async def main():
-    nc = await nats.connect(f"nats://{TOKEN}@{NATS_ADDRESS}:4222")
+    # read ssl files
+    ssl_ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ssl_ctx.load_verify_locations('./CA.pem')
+    ssl_ctx.minimum_version = ssl.TLSVersion.TLSv1_2  
+    ssl_ctx.load_cert_chain(
+        certfile='./container1-cert.pem',
+        keyfile='./container1-key.pem')
+
+    nc = await nats.connect(servers=[f"nats://{TOKEN}@{NATS_ADDRESS}:4222"], tls=ssl_ctx, tls_hostname="nats")
     js = nc.jetstream()
 
     # create consumers

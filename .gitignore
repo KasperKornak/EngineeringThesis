@@ -130,6 +130,25 @@ venv.bak/
 auth.conf
 .DS_Store
 
+# TLS
+CA-key.pem
+CA.pem
+CA.srl
+server-cert.pem
+server-csr.pem
+server-key.pem
+container1-key.pem
+container1-cert.pem
+container1-csr.pem
+container2-key.pem
+container2-cert.pem
+container2-csr.pem
+container3-key.pem
+container3-cert.pem
+container3-csr.pem
+container4-key.pem
+container4-cert.pem
+container4-csr.pem
 # Spyder project settings
 .spyderproject
 .spyproject
