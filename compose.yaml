@@ -2,11 +2,19 @@ version: '1.0'
 services:
   nats:
     image: nats:2-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 0.8G
+        reservations:
+          cpus: '1'
+          memory: 0.5G
     container_name: nats
     restart: on-failure
     ports:
       - 4222:4222
-    command: --config /etc/nats/nats.conf
+    command: ["nats-server", "--config", "/etc/nats/nats.conf"]
     environment:
       NATS_TOKEN: "${NATS_TOKEN}"
     healthcheck:
@@ -14,41 +22,50 @@ services:
       interval: 5s
       timeout: 10s
     volumes:
-      - ./nats-config/nats.conf:/etc/nats/nats.conf
-      - ./nats-config/auth.conf:/etc/nats/auth.conf
-      - ./nats-config/server-cert.pem:/etc/nats/server-cert.pem
-      - ./nats-config/server-key.pem:/etc/nats/server-key.pem
-      - ./nats-config/CA.pem:/etc/nats/CA.pem
+      - nats-config:/etc/nats
     networks:
       - nats
       
 
   nats-box:
     image: natsio/nats-box:0.7.0
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 0.3G
+        reservations:
+          cpus: '0.5'
+          memory: 0.2G
     container_name: nats-box
-    restart: on-failure
+    restart: on-failure:3
     depends_on:
       nats:
         condition: service_healthy
     environment:
       NATS_TOKEN: "${NATS_TOKEN}"
       GODEBUG: "x509ignoreCN=0"
-    entrypoint: >
-      /bin/sh -c "nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select --tlscert="/root/container3-cert.pem" --tlskey="/root/container3-key.pem" --tlsca="/root/CA.pem"
-      && nats stream add --config="/root/rpi-stream.json"
-      && /bin/sh -l"
+    command: >
+      /bin/sh -c "nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select --tlscert="/root/container3-cert.pem" --tlskey="/root/container3-key.pem" --tlsca="/root/CA.pem" &&
+      nats stream add --config="/root/rpi-stream.json" &&
+      /bin/sh -l"
     tty: true
     volumes:
-      - ./nats-config/rpi-stream.json:/root/rpi-stream.json
-      - ./nats-config/CA.pem:/root/CA.pem
-      - ./nats-config/container3-cert.pem:/root/container3-cert.pem
-      - ./nats-config/container3-key.pem:/root/container3-key.pem
+      - nats-config:/root
     networks:
       - nats
 
   feature-extractor:
-    image: feature_extractor:1.0
-    container_name: feature_extractor
+    image: kasperkornak/feature_extractor:1.0
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 0.8G
+        reservations:
+          cpus: '1'
+          memory: 0.5G
+    container_name: feature-extractor
     restart: on-failure
     depends_on:
       nats:
@@ -60,8 +77,16 @@ services:
       - nats
     
   ml_predictor:
-    image: ml_predictor:1.0
-    container_name: ml_predictor
+    image: kasperkornak/ml_predictor:1.0
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 0.8G
+        reservations:
+          cpus: '1'
+          memory: 0.5G
+    container_name: ml-predictor
     restart: on-failure
     depends_on:
       nats:
@@ -75,3 +100,10 @@ services:
 networks:
   nats:
     name: nats
+
+volumes:
+  nats-config:
+    driver: azure_file
+    driver_opts:
+      share_name: "${SHARE_NAME}"
+      storage_account_name: "${SA_NAME}"

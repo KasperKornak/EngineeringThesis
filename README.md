@@ -165,8 +165,11 @@ This will NOT run the container in the detached mode. You will see outputs of th
 
 # TODO
 - [ ] Create scripts to automatically provision infrastructure.
-- [ ] Create an internet gateway for ACI environment.
+- [x] Create an internet gateway for ACI environment.
 - [x] Add TLS.
+- [ ] Fix crashing nats-box container.
+- [ ] Double-check security of exposed container ports.
+- [ ] Add encryption-at-rest to JetStream.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
 - [ ] Determine correct retention parameters for stream.
 - [ ] Upload mechanical models and blueprints.
