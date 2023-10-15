@@ -17,6 +17,7 @@ services:
     command: ["nats-server", "--config", "/etc/nats/nats.conf"]
     environment:
       NATS_TOKEN: "${NATS_TOKEN}"
+      JS_KEY: "${JS_KEY}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz?js-enabled-only=true"]
       interval: 5s
@@ -56,7 +57,7 @@ services:
       - nats
 
   feature-extractor:
-    image: kasperkornak/feature_extractor:1.0
+    image: kasperkornak/feature_extractor:${LATEST_FEATURE_EXTRACTOR_TAG}
     deploy:
       resources:
         limits:
@@ -77,7 +78,7 @@ services:
       - nats
     
   ml_predictor:
-    image: kasperkornak/ml_predictor:1.0
+    image: kasperkornak/ml_predictor:${LATEST_ML_PREDICTOR_TAG}
     deploy:
       resources:
         limits:

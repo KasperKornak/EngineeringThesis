@@ -164,15 +164,16 @@ This will NOT run the container in the detached mode. You will see outputs of th
 **For container to work properly, NATS container must be started first!**
 
 # TODO
-- [ ] Create scripts to automatically provision infrastructure.
+- [ ] Upload mechanical models and blueprints.
+- [ ] Add database for storing previous predictions labels.
+- [ ] Add service to compare and average four previous predicted labels.
+- [ ] Fix crashing nats-box container.
+- [ ] Update the docs for engineering thesis layout - both READMEs and in code.
 - [x] Create an internet gateway for ACI environment.
 - [x] Add TLS.
-- [ ] Fix crashing nats-box container.
-- [ ] Double-check security of exposed container ports.
-- [ ] Add encryption-at-rest to JetStream.
-- [ ] Update the docs for engineering thesis layout - both READMEs and in code.
-- [ ] Determine correct retention parameters for stream.
-- [ ] Upload mechanical models and blueprints.
+- [x] Add encryption-at-rest to JetStream.
+- [x] Determine correct retention parameters for stream.
+- [x] Create scripts to automatically provision infrastructure.
 - [x] Enable containers to still work after some time of inactivity.
 - [x] Set up ML model and predictions container.
 - [x] Check if sampling in data gathering is correct.
