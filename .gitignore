@@ -149,6 +149,13 @@ container3-csr.pem
 container4-key.pem
 container4-cert.pem
 container4-csr.pem
+container5-key.pem
+container5-cert.pem
+container5-csr.pem
+redis-key.pem
+redis-cert.pem
+redis-csr.pem
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -179,3 +186,6 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+output-service/outputFinalLabel.py
+.gitignore
+redis-config/redis.conf

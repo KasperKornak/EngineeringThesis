@@ -165,10 +165,13 @@ This will NOT run the container in the detached mode. You will see outputs of th
 
 # TODO
 - [ ] Upload mechanical models and blueprints.
-- [ ] Add database for storing previous predictions labels.
 - [ ] Add service to compare and average four previous predicted labels.
-- [ ] Fix crashing nats-box container.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
+- [ ] Write script to connect to Redis and perform label comparison.
+- [ ] Upload Redis, label comparator image to DockerHub.
+- [ ] Change Docker Compose file to provison all new containers.
+- [x] Add database for storing previous predictions labels.
+- [x] Fix crashing nats-box container.
 - [x] Create an internet gateway for ACI environment.
 - [x] Add TLS.
 - [x] Add encryption-at-rest to JetStream.
