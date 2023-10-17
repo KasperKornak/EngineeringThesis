@@ -8,6 +8,8 @@ import os
 # read env variables needed to connect to NATS
 TOKEN = os.getenv('NATS_TOKEN')
 NATS_ADDRESS = os.getenv('NATS_ADDRESS')
+REDIS_PASSWORD=os.getenv('REDIS_PASSWORD')
+REDIS_ADDRESS=os.getenv('REDIS_ADDRESS')
 
 # async communication needed for NATS
 async def main():
@@ -22,10 +24,11 @@ async def main():
     # open connection to NATS and Redis
     nc = await nats.connect(servers=[f"nats://{TOKEN}@{NATS_ADDRESS}:4222"], tls=ssl_ctx, tls_hostname="nats")
     js = nc.jetstream()
-    r = redis.Redis(host="localhost", port=6379,
+    r = redis.Redis(host=REDIS_ADDRESS, port=7379,
                     ssl=True, ssl_keyfile="./container5-key.pem",
                     ssl_ca_certs="./CA.pem",
-                    ssl_certfile="container5-cert.pem")
+                    ssl_certfile="container5-cert.pem",
+                    password=REDIS_PASSWORD)
 
     # create consumers
     sub_y = await js.pull_subscribe("predictions","RPI-sub-predictions","RPI")
@@ -40,9 +43,25 @@ async def main():
             continue  
 
         # retrieve last three labels from Redis
-        first_val = r.get("first_val").decode()
-        second_val = r.get("second_val").decode()
-        third_val = r.get("third_val").decode()
+        first_val = r.get("first_val")
+        second_val = r.get("second_val")
+        third_val = r.get("third_val")
+
+        if first_val is not None:
+            first_val = first_val.decode()
+        else: 
+            first_val = "placeholder"
+
+        if second_val is not None:
+            second_val = second_val.decode()
+        else: 
+            first_val = "placeholder"
+
+        if third_val is not None:
+            third_val = third_val.decode()
+        else: 
+            first_val = "placeholder"
+            
         comparison_list = [latest_label, first_val, second_val, third_val]
         
         # choose the most common string
@@ -59,6 +78,10 @@ async def main():
         r.set("first_val", latest_label)
         r.set("second_val", first_val)
         r.set("third_val", second_val)
+
+        # send final output to nats
+        _ = await js.publish("output", f"{most_common_string}".encode(), stream="RPI")
+        print("output sent to NATS")
                 
 
 if __name__ == '__main__':

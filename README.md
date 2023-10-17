@@ -168,6 +168,8 @@ This will NOT run the container in the detached mode. You will see outputs of th
 - [ ] Add service to compare and average four previous predicted labels.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
 - [ ] Upload Redis, label comparator image to DockerHub.
+- [ ] Fix label comparator.
+- [ ] Delete automatic tag detection in Compose.
 - [ ] Change Docker Compose file to provison all new containers.
 - [x] Write script to connect to Redis and perform label comparison.
 - [x] Add database for storing previous predictions labels.
