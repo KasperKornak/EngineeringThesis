@@ -167,9 +167,9 @@ This will NOT run the container in the detached mode. You will see outputs of th
 - [ ] Upload mechanical models and blueprints.
 - [ ] Add service to compare and average four previous predicted labels.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
-- [ ] Write script to connect to Redis and perform label comparison.
 - [ ] Upload Redis, label comparator image to DockerHub.
 - [ ] Change Docker Compose file to provison all new containers.
+- [x] Write script to connect to Redis and perform label comparison.
 - [x] Add database for storing previous predictions labels.
 - [x] Fix crashing nats-box container.
 - [x] Create an internet gateway for ACI environment.
