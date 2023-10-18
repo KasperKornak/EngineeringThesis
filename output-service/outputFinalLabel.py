@@ -42,6 +42,10 @@ async def main():
             await asyncio.sleep(120)  
             continue  
 
+        # decode message from NATS
+        for message in latest_label:
+            encoded_latest_label = message.data.decode()
+        
         # retrieve last three labels from Redis
         first_val = r.get("first_val")
         second_val = r.get("second_val")
@@ -62,20 +66,19 @@ async def main():
         else: 
             first_val = "placeholder"
             
-        comparison_list = [latest_label, first_val, second_val, third_val]
+        comparison_list = [encoded_latest_label, first_val, second_val, third_val]
         
         # choose the most common string
         string_counts = Counter(comparison_list)
-        most_common_strings = string_counts.most_common()
-        most_common_string, _ = most_common_strings[0]
+        most_common_string = string_counts.most_common(1)[0][0]
         
-        if most_common_string != latest_label:
+        if most_common_string != encoded_latest_label:
             print(f"to output: {most_common_string}")
         else:
-            print(f"to output: {latest_label}")
+            print(f"to output: {encoded_latest_label}")
 
         # update redis with latest predicted label
-        r.set("first_val", latest_label)
+        r.set("first_val", encoded_latest_label)
         r.set("second_val", first_val)
         r.set("third_val", second_val)
 

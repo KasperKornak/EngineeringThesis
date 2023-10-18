@@ -121,7 +121,7 @@ services:
       - nats
 
   output-container:
-    image: kasperkornak/output_container:1.1
+    image: kasperkornak/output_service:1.0
     deploy:
       resources:
         limits:
