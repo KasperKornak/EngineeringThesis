@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# use correct context
+docker context use har-azure
+
 # create resource group
 echo "Creating resource group RPI-Cloud."
 az group create --location westeurope --name RPI-Cloud
@@ -24,5 +27,4 @@ echo "Files uploaded."
 
 # deploy app 
 cd ../
-docker context use har-azure
 docker compose up

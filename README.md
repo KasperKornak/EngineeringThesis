@@ -165,9 +165,12 @@ This will NOT run the container in the detached mode. You will see outputs of th
 
 # TODO
 - [ ] Upload mechanical models and blueprints.
-- [ ] Add service to compare and average four previous predicted labels.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
-- [ ] Fix fetaure-extractor Pandas bug.
+- [ ] Fix wiring in RPI.
+- [ ] Create new ml_predictor image with the latest model.
+- [ ] Integrate output-service with Telegram.
+- [x] Add service to compare and average four previous predicted labels.
+- [x] Fix fetaure-extractor Pandas bug.
 - [x] Upload Redis, label comparator image to DockerHub.
 - [x] Fix label comparator.
 - [x] Delete automatic tag detection in Compose.

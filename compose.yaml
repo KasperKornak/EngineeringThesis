@@ -58,7 +58,7 @@ services:
       - nats
 
   feature-extractor:
-    image: kasperkornak/feature_extractor:1.0
+    image: kasperkornak/feature_extractor:1.1
     deploy:
       resources:
         limits:

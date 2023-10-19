@@ -1,6 +1,7 @@
 import board
 import asyncio
 import nats
+import ssl
 from adafruit_lis3mdl import Rate
 from adafruit_lsm6ds.lsm6ds3 import LSM6DS3 as LSM6DS
 
@@ -15,8 +16,16 @@ accel_gyro.accelerometer_data_rate = accel_rate
 # async communication needed for NATS
 # streaming with persistence using JetStream
 async def main():
+    # read ssl files
+    ssl_ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ssl_ctx.load_verify_locations('./CA.pem')
+    ssl_ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    ssl_ctx.load_cert_chain(
+        certfile='./container4-cert.pem',
+        keyfile='./container4-key.pem')
+
     # open connection to NATS and interface for JetStream
-    nc = await nats.connect("nats://<token>@<nats_server_address>:4222")
+    nc = await nats.connect("nats://haslo@localhost:4222", tls=ssl_ctx, tls_hostname="nats")
     js = nc.jetstream()
     print("connected to NATS")
     # counter to keep track of samples
