@@ -20,12 +20,11 @@ NATS_ADDRESS = os.getenv('NATS_ADDRESS')
 # class labels for predicted outputs
 class_mapping = {
     0: "downstairs",
-    1: "lying",
-    2: "sitting",
-    3: "squats",
-    4: "standing",
-    5: "upstairs",
-    6:  "walking" }
+    1: "resting",
+    2: "squats",
+    3: "standing",
+    4: "upstairs",
+    5:  "walking" }
 
 # async communication needed for NATS
 async def main():

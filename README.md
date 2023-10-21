@@ -167,8 +167,9 @@ This will NOT run the container in the detached mode. You will see outputs of th
 - [ ] Upload mechanical models and blueprints.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
 - [ ] Fix wiring in RPI.
-- [ ] Create new ml_predictor image with the latest model.
-- [ ] Integrate output-service with Telegram.
+- [ ] Test Telegram messaging service.
+- [x] Integrate output-service with Telegram.
+- [x] Create new ml_predictor image with the latest model.
 - [x] Add service to compare and average four previous predicted labels.
 - [x] Fix fetaure-extractor Pandas bug.
 - [x] Upload Redis, label comparator image to DockerHub.

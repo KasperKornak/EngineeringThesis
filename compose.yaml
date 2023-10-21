@@ -79,7 +79,7 @@ services:
       - nats
     
   ml_predictor:
-    image: kasperkornak/ml_predictor:1.0
+    image: kasperkornak/ml_predictor:1.1
     deploy:
       resources:
         limits:
@@ -121,7 +121,7 @@ services:
       - nats
 
   output-container:
-    image: kasperkornak/output_service:1.0
+    image: kasperkornak/output_service:1.1
     deploy:
       resources:
         limits:
@@ -140,6 +140,8 @@ services:
       REDIS_ADDRESS: "${REDIS_ADDRESS}"
       NATS_TOKEN: "${NATS_TOKEN}"
       NATS_ADDRESS: "${NATS_ADDRESS}"
+      TELEGRAM_KEY: "${TELEGRAM_KEY}"
+      TELEGRAM_CHAT: "${TELEGRAM_CHAT}"
     networks:
       - nats
 
