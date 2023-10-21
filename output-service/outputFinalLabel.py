@@ -46,92 +46,96 @@ async def main():
             # consume latest activity label with a timeout
             latest_label = await asyncio.wait_for(sub_y.fetch(1), timeout=300.0)
         except asyncio.TimeoutError:
-            print("No new messages, sleeping for 2 minutes.")
-            await asyncio.sleep(120)  
+            print("No new messages, sleeping for 30 seconds.")
+            await asyncio.sleep(30)  
             continue  
 
-        # decode message from NATS
-        for message in latest_label:
-            encoded_latest_label = message.data.decode()
+        try:
+            # decode message from NATS
+            for message in latest_label:
+                encoded_latest_label = message.data.decode()
+            
+            print("=======\nEncoded latest prediction")
+            print(encoded_latest_label)
+
+            # retrieve last three labels from Redis as well as current and previous predictions
+            first_val = r.get("first_val")
+            second_val = r.get("second_val")
+            third_val = r.get("third_val")
+            prevPrediction = r.get("previous_prediction")
+
+            print("=======\nRedis values")
+            print(f"First value: {first_val}")
+            print(f"Second value: {second_val}")
+            print(f"Third value: {third_val}")
+            print(f"Previous prediction: {prevPrediction}")
+
+            if first_val is not None:
+                first_val = first_val.decode()
+            else: 
+                first_val = "placeholder"
+
+            if second_val is not None:
+                second_val = second_val.decode()
+            else: 
+                first_val = "placeholder"
+
+            if third_val is not None:
+                third_val = third_val.decode()
+            else: 
+                first_val = "placeholder"
+
+            print("=======\nRedis values again")
+            print(f"First value: {first_val}")
+            print(f"Second value: {second_val}")
+            print(f"Third value: {third_val}")
+            print(f"Previous prediction: {prevPrediction}")
+            
+            comparison_list = [encoded_latest_label, first_val, second_val, third_val]
+            
+            print("=======\nComparison list")
+            print(f"Comparison list: {comparison_list}")
+
+            # choose the most common string
+            string_counts = Counter(comparison_list)
+            most_common_string = string_counts.most_common(1)[0][0]
+            
+            print("=======\nMost common strings")
+            print(string_counts)
+            print(most_common_string)
+
+            if most_common_string != encoded_latest_label:
+                print(f"to output (if): {most_common_string}")
+            else:
+                print(f"to output (else): {encoded_latest_label}")
+
+            # update redis with latest predicted label
+            r.set("first_val", encoded_latest_label)
+            r.set("second_val", first_val)
+            r.set("third_val", second_val)
+
+            # send final output to nats
+            _ = await js.publish("output", f"{most_common_string}".encode(), stream="RPI")
+            print("output sent to NATS")
+            
+
+            print("=======\nTelegram")
+            print(f"Most common string: {most_common_string}")
+            print(f"Previous prediction: {prevPrediction}")
+            if most_common_string != prevPrediction.decode():
+                try:    
+                    r.set("previous_prediction", most_common_string)
+                    # initialize a Telegram bot
+                    bot = Bot(token=TELEGRAM_KEY)
+
+                    # send the NATS message content to Telegram
+                    await bot.send_message(chat_id=TELEGRAM_CHAT, text=most_common_string)
+
+                except TelegramError as e:
+                    print(f"Telegram Error: {e}")
         
-        print("=======\nEncoded latest prediction")
-        print(encoded_latest_label)
-
-        # retrieve last three labels from Redis as well as current and previous predictions
-        first_val = r.get("first_val")
-        second_val = r.get("second_val")
-        third_val = r.get("third_val")
-        prevPrediction = r.get("previous_prediction")
-
-        print("=======\nRedis values")
-        print(f"First value: {first_val}")
-        print(f"Second value: {second_val}")
-        print(f"Third value: {third_val}")
-        print(f"Previous prediction: {prevPrediction}")
-
-        if first_val is not None:
-            first_val = first_val.decode()
-        else: 
-            first_val = "placeholder"
-
-        if second_val is not None:
-            second_val = second_val.decode()
-        else: 
-            first_val = "placeholder"
-
-        if third_val is not None:
-            third_val = third_val.decode()
-        else: 
-            first_val = "placeholder"
-
-        print("=======\nRedis values again")
-        print(f"First value: {first_val}")
-        print(f"Second value: {second_val}")
-        print(f"Third value: {third_val}")
-        print(f"Previous prediction: {prevPrediction}")
-        
-        comparison_list = [encoded_latest_label, first_val, second_val, third_val]
-        
-        print("=======\nComparison list")
-        print(f"Comparison list: {comparison_list}")
-
-        # choose the most common string
-        string_counts = Counter(comparison_list)
-        most_common_string = string_counts.most_common(1)[0][0]
-        
-        print("=======\nMost common strings")
-        print(string_counts)
-        print(most_common_string)
-
-        if most_common_string != encoded_latest_label:
-            print(f"to output (if): {most_common_string}")
-        else:
-            print(f"to output (else): {encoded_latest_label}")
-
-        # update redis with latest predicted label
-        r.set("first_val", encoded_latest_label)
-        r.set("second_val", first_val)
-        r.set("third_val", second_val)
-
-        # send final output to nats
-        _ = await js.publish("output", f"{most_common_string}".encode(), stream="RPI")
-        print("output sent to NATS")
-        
-
-        print("=======\nTelegram")
-        print(f"Most common string: {most_common_string}")
-        print(f"Previous prediction: {prevPrediction}")
-        if most_common_string != prevPrediction.decode():
-            try:    
-                r.set("previous_prediction", most_common_string)
-                # initialize a Telegram bot
-                bot = Bot(token=TELEGRAM_KEY)
-
-                # send the NATS message content to Telegram
-                await bot.send_message(chat_id=TELEGRAM_CHAT, text=most_common_string)
-
-            except TelegramError as e:
-                print(f"Telegram Error: {e}")
+        except Exception as e:
+            print(f"Exception ocurred: {e}")
                 
 
 if __name__ == '__main__':

@@ -36,8 +36,8 @@ async def main():
             y_data = await asyncio.wait_for(sub_y.fetch(500), timeout=300.0)
             z_data = await asyncio.wait_for(sub_z.fetch(500), timeout=300.0)
         except asyncio.TimeoutError:
-            print("No new messages, sleeping for 2 minutes.")
-            await asyncio.sleep(120)
+            print("No new messages, sleeping for 30 seconds.")
+            await asyncio.sleep(30)
             continue
         
         try:

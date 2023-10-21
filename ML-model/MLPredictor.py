@@ -49,28 +49,31 @@ async def main():
             # consume latest features with a timeout
             messages = await asyncio.wait_for(sub_feats.fetch(1), timeout=300.0)
         except asyncio.TimeoutError:
-            print("No new messages. Sleeping for 2 minutes...")
-            await asyncio.sleep(120)
+            print("No new messages, sleeping for 30 seconds.")
+            await asyncio.sleep(30)
             continue 
 
-        # predict the activity for received features
-        for message in messages:
-            # decode from base64, reconstruct DataFrame, and convert to tensor
-            decoded_feats = base64.b64decode(message.data)
-            decoded_feats_str = decoded_feats.decode('utf-8')  
-            featuresDf = pd.read_json(decoded_feats_str, orient='split')
-            if featuresDf.empty == True:
-                continue
-            window_data = featuresDf.values.reshape(1, -1)
-            window_data_tensor = tf.convert_to_tensor(window_data, dtype=tf.float64)
+        try:
+            # predict the activity for received features
+            for message in messages:
+                # decode from base64, reconstruct DataFrame, and convert to tensor
+                decoded_feats = base64.b64decode(message.data)
+                decoded_feats_str = decoded_feats.decode('utf-8')  
+                featuresDf = pd.read_json(decoded_feats_str, orient='split')
+                if featuresDf.empty == True:
+                    continue
+                window_data = featuresDf.values.reshape(1, -1)
+                window_data_tensor = tf.convert_to_tensor(window_data, dtype=tf.float64)
 
-            # map probabilities to class_mapping dictionary
-            pred = model.predict(window_data_tensor)
-            predicted_class = np.argmax(pred)
-
-            # send predicted label to predictions subject
-            _ = await js.publish("predictions", f"{class_mapping[predicted_class]}".encode(), stream="RPI")
-            print("prediction sent to NATS")
+                # map probabilities to class_mapping dictionary
+                pred = model.predict(window_data_tensor)
+                predicted_class = np.argmax(pred)
+                print(f"Prediction: {predicted_class}")
+                # send predicted label to predictions subject
+                _ = await js.publish("predictions", f"{class_mapping[predicted_class]}".encode(), stream="RPI")
+                print("prediction sent to NATS")
+        except Exception as e:
+            print(f"Exception ocurred: {e}")
 
 
 if __name__ == '__main__':
