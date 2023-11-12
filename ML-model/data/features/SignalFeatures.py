@@ -570,3 +570,32 @@ def feats_df(data):
         print(err)
         print("=====")
         return None
+
+
+def windowing(data, l):
+    curr_df = pd.DataFrame(columns=[*gg])
+    n = len(data)
+
+    # head and tail cut-off seconds
+    head = 0
+    tail = 9
+
+    # select range based on head and tail seconds
+    # adj is used to cut off signal at good point
+    dp = data.iloc[head * 100:n - tail * 100]
+    a = len(dp)
+
+    # window size
+    v = round(l) * 100
+    b = a % v
+
+    dd = pd.DataFrame()
+    for i in range(0, n - tail * 100 - b, v):
+        dd = dp.iloc[i:i + v + 1].reset_index(False)
+        window_feat = feats_df(dd)
+        curr_df = pd.concat([window_feat, curr_df])
+
+    return dd
+
+
+
