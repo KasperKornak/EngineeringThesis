@@ -58,7 +58,7 @@ services:
       - nats
 
   feature-extractor:
-    image: kasperkornak/feature_extractor:1.1
+    image: kasperkornak/feature_extractor:1.2
     deploy:
       resources:
         limits:
@@ -79,7 +79,7 @@ services:
       - nats
     
   ml_predictor:
-    image: kasperkornak/ml_predictor:1.1
+    image: kasperkornak/ml_predictor:1.2
     deploy:
       resources:
         limits:
@@ -121,7 +121,7 @@ services:
       - nats
 
   output-container:
-    image: kasperkornak/output_service:1.1
+    image: kasperkornak/output_service:1.2
     deploy:
       resources:
         limits:
