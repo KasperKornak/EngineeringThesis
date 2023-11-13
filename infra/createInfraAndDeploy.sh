@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# use correct context
+# use correct context, docker logout 
 docker context use har-azure
+docker logout
 
 # create resource group
 echo "Creating resource group RPI-Cloud."

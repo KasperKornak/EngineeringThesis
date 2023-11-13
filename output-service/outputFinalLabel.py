@@ -100,6 +100,9 @@ async def main():
             string_counts = Counter(comparison_list)
             most_common_string = string_counts.most_common(1)[0][0]
             
+            if (string_counts.most_common(2)[0][1] == string_counts.most_common(2)[1][1]) and ("placeholder" not in comparison_list):
+                continue
+            
             print("=======\nMost common strings")
             print(string_counts)
             print(most_common_string)

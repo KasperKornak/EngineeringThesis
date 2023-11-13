@@ -35,9 +35,9 @@ async def main():
             acceleration = accel_gyro.acceleration
 
             # publish data
-            _ = await js.publish("x", f"{acceleration[0] / 9.80665}".encode(),stream="RPI")
-            _ = await js.publish("y", f"{acceleration[1] / 9.80665}".encode(),stream="RPI")
-            _ = await js.publish("z", f"{acceleration[2] / 9.80665}".encode(),stream="RPI")
+            _ = await js.publish("x", f"{acceleration[0]}".encode(),stream="RPI")
+            _ = await js.publish("y", f"{acceleration[1]}".encode(),stream="RPI")
+            _ = await js.publish("z", f"{acceleration[2]}".encode(),stream="RPI")
 
         counter +=1 
 

@@ -1,30 +1,19 @@
-from keras.models import load_model
-import tensorflow as tf
 import ssl
 import asyncio
 import os
 import nats
 import base64
 import pandas as pd
-import numpy as np
+from joblib import load
 
 # func to load the trained model
 def init_model():
-    model = load_model('model.h5')
+    model = load('model.joblib')
     return model
 
 # read env variables needed to connect to NATS
 TOKEN = os.getenv('NATS_TOKEN')
 NATS_ADDRESS = os.getenv('NATS_ADDRESS')
-
-# class labels for predicted outputs
-class_mapping = {
-    0: "downstairs",
-    1: "resting",
-    2: "squats",
-    3: "standing",
-    4: "upstairs",
-    5:  "walking" }
 
 # async communication needed for NATS
 async def main():
@@ -63,14 +52,16 @@ async def main():
                 if featuresDf.empty == True:
                     continue
                 window_data = featuresDf.values.reshape(1, -1)
-                window_data_tensor = tf.convert_to_tensor(window_data, dtype=tf.float64)
+                
+                # print dataframe
+                print(window_data.head())
 
                 # map probabilities to class_mapping dictionary
-                pred = model.predict(window_data_tensor)
-                predicted_class = np.argmax(pred)
+                pred = model.predict(window_data)
+                predicted_class = pred[0]
                 print(f"Prediction: {predicted_class}")
                 # send predicted label to predictions subject
-                _ = await js.publish("predictions", f"{class_mapping[predicted_class]}".encode(), stream="RPI")
+                _ = await js.publish("predictions", f"{predicted_class}".encode(), stream="RPI")
                 print("prediction sent to NATS")
         except Exception as e:
             print(f"Exception ocurred: {e}")
