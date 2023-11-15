@@ -78,7 +78,7 @@ services:
       - nats
     
   ml_predictor:
-    image: kasperkornak/ml_predictor:1.4
+    image: kasperkornak/ml_predictor:1.6
     deploy:
       resources:
         limits:

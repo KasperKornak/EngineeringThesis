@@ -100,6 +100,7 @@ async def main():
             string_counts = Counter(comparison_list)
             most_common_string = string_counts.most_common(1)[0][0]
             
+            ## terminate current iteration if both labels in comparison_list have the same counts
             if (string_counts.most_common(2)[0][1] == string_counts.most_common(2)[1][1]) and ("placeholder" not in comparison_list):
                 continue
             

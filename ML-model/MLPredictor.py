@@ -38,8 +38,8 @@ async def main():
             # consume latest features with a timeout
             messages = await asyncio.wait_for(sub_feats.fetch(1), timeout=300.0)
         except asyncio.TimeoutError:
-            print("No new messages, sleeping for 30 seconds.")
-            await asyncio.sleep(30)
+            print("No new messages, sleeping for 15 seconds.")
+            await asyncio.sleep(15)
             continue 
 
         try:
@@ -53,8 +53,8 @@ async def main():
                     continue
                 window_data = featuresDf.values.reshape(1, -1)
                 
-                # print dataframe
-                print(window_data.head())
+                # print features dataframe
+                print(window_data)
 
                 # map probabilities to class_mapping dictionary
                 pred = model.predict(window_data)
