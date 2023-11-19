@@ -4,7 +4,7 @@
 ![Alt text](img/rpi-arch.png)
 
 ### Components
-Because of ease of use and scalability, as well as potential for future HA mechanisms (e.g. deploying the application on Kubernetes) our team decided to use microservices architecture. Application consists of four main components:
+Because of ease of use and scalability, as well as potential for future HA mechanisms (e.g. deploying the application on Kubernetes) I have decided to use microservices architecture. Application consists of four main components:
 
 1. Raspberry Pi equipped with **LSM6DS3TR-C + LIS3MDL 9DOF IMU** and pre-installed data gathering script.
 2. **NATS** server with **JetStream** persistance layer acts as a message broker, enabling communication between each of the microservices.
@@ -30,23 +30,21 @@ Official clients are available in Go, Rust, JavaScript (Node and Web), TypeScrip
 Real time data streaming, highly resilient data storage and flexible data retrieval are supported through JetStream, the next generation streaming platform built into the NATS server.
 ```
 
-In our case, NATS acts as a message broker connecting Raspberry Pi and each of the microservices. Data from Raspberry Pi is stored in three subjects: `x`, `y` and `z` each corresponding data gathered from each axis. Features extracted from signals are stored in `feats` subject and final activity predicitons for each window - in `predictions`.
+In my case, NATS acts as a message broker connecting Raspberry Pi and each of the microservices. Data from Raspberry Pi is stored in three subjects: `x`, `y` and `z` each corresponding data gathered from each axis. Features extracted from signals are stored in `feats` subject and final activity predicitons for each window - in `predictions`.
 
 Using subjects as queues ensures that all the data will be consumed by FeatureExtractor and fed the ML model.
 
 ### FeatureExtractor
-To feed our ML model, we need to extract characteristic features from the gathered data. 
+To feed our ML model, it has to be fed to extract characteristic features from the gathered data. 
 
 FeatureExtractor consumes signals from each axis, computes the features and sends pandas DataFrame in form of base64-encoded json to `feats` subject. Container containing ML model will consume the last feature message and reconstruct the DataFrame.
 
 ### ML Model and prediction
-After consumption of the feature message, the message will be used to reconstruct DataFrame containing features. Our highly-accurate ML will be fed with this data and will output predicted activity. Then, this data will be send to `predicitons` subject.
+After consumption of the feature message, the message will be used to reconstruct DataFrame containing features. My ML model will be fed with this data and will output predicted activity. Then, this data will be send to `predicitons` subject.
 
 Storing predicted data in NATS subject makes it easy to further use predicted activity for e.g. web applications or sending user notifications.
 
 ## Deployment
-There will be scripts to automate all the steps listed below in the future.
-
 ### Raspberry Pi
 Start with the following steps:
 
@@ -69,8 +67,9 @@ git checkout RPI-dev
 # change to correct directory 
 cd rpi/rpi-site
 
-# be sure to insert token and NATS address in the script
-vi PubDataNATS.py
+# be sure to store NATS token and address into environmental variables
+export NATS_ADDRESS=address_here
+export NATS_TOKEN=token_here
 
 # install dependencies
 pip install -r requirements.txt
@@ -79,95 +78,96 @@ pip install -r requirements.txt
 nohup python3 PubDataNATS.py > RPI-data.log 2>&1 &
 ```
 
-### NATS
-To complete this and the following steps you will need to install Docker. 
+### Containers - local environment
+For rapid testing of new container images, you may want to deploy the container infrastructure. Here are prerequisites:
 
-To start with, create a network and run the NATS container:
+1. Be sure to have all TLS certs and keys in folders of each container:
 
-```bash
-# create network
-docker network create nats
+|Folder|Required files|
+|---|---|
+|`feature-extractor`|**container1-cert.pem**, **container1-key.pem**, **CA.pem**|
+|`ML-model`|**container2-cert.pem**, **container2-key.pem**, **CA.pem**|
+|`nats-config`|**container3-cert.pem**, **container3-key.pem**, **CA.pem**, **auth.conf**|
+|`output-service`|**container5-cert.pem**, **container5-key.pem**, **CA.pem**|
+|`redis-config`|**redis-cert.pem**, **redis-key.pem**, **CA.pem**, **redis.conf**|
+|`rpi-site`|**container4-cert.pem**, **container4-key.pem**, **CA.pem**|
 
-# be sure to insert the auth token
-docker run -d --name nats --network nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222 -js --auth <insert auth token here>
-```
+2. At the root folder of the repository create `.env` file containing the following variables:
 
-This command will download NATS image and run NATS container with the following parameters:
+- `NATS_TOKEN`=**your token here**
+- `NATS_ADDRESS`=nats
+- `JS_KEY`=**JetStream encryption key**
+- `REDIS_PASSWORD`=**your Redis password here**
+- `REDIS_ADDRESS`=redis
+- `TELEGRAM_KEY`=**Telegram API key here**
+- `TELEGRAM_CHAT`=**Telegram chat ID here**
 
-- container is ran in detached mode,
-- container name is *nats*,
-- container will use virtual network *nats*
-- container will be removed after being stopped,
-- container will expose ports *4222* and *8222* and will use the latter for handling http requests,
-- container will have JetStream enabled,
-- container will require authentication token provided by you.
-
-After successful container start, you will need to create before-mentioned subjects. To do that, install `nats-cli` using `brew`:
-
-```bash
-brew tap nats-io/nats-tools
-brew install nats-io/nats-tools/nats
-```
-
-Other installation methods can be found here: [link](https://github.com/nats-io/natscli#installation). Installing from source requires Go installed on your machine.
-
-Now, to create stream and subjects run:
+After prerequisites are fullfilled, you may run:
 
 ```bash
-nats str add --user=<your auth token here>
+docker compose -f compose.local.yaml up
 ```
 
-You will have to insert the following values in interactive mode:
+Then, exec into `nats-box` container and run: 
 
 ```bash
-? Stream Name RPI
-? Subjects x,y,z,feats,predictions
-? Storage file
-? Replication 1
-? Retention Policy Limits
-? Discard Policy Old
-? Stream Messages Limit -1
-? Per Subject Messages Limit -1
-? Total Stream Size -1
-? Message TTL 5m
-? Max Message Size -1
-? Duplicate tracking time window 2m0s
-? Allow message Roll-ups No
-? Allow message deletion Yes
-? Allow purging subjects or the entire stream Yes
+nats context save local --server nats://$NATS_TOKEN@nats:4222 --description 'docker' --select --tlscert="/root/container3-cert.pem" --tlskey="/root/container3-key.pem" --tlsca="/root/CA.pem" && nats stream add --config="/root/rpi-stream.json"
 ```
 
-That concludes NATS setup.
+Now, you may start gathering data on your from Raspberry Pi 😊. 
 
-### FeatureExtractor
-To start with, be sure to have Docker installed and repository cloned.
+### Containers - Azure
+For full production deployment, you may want to deploy the application on Azure. Here are prerequisites:
+
+1. Be sure to have all TLS certs and keys in folders of each container:
+
+|Folder|Required files|
+|---|---|
+|`feature-extractor`|**container1-cert.pem**, **container1-key.pem**, **CA.pem**|
+|`ML-model`|**container2-cert.pem**, **container2-key.pem**, **CA.pem**|
+|`nats-config`|**container3-cert.pem**, **container3-key.pem**, **CA.pem**, **auth.conf**|
+|`output-service`|**container5-cert.pem**, **container5-key.pem**, **CA.pem**|
+|`redis-config`|**redis-cert.pem**, **redis-key.pem**, **CA.pem**, **redis.conf**|
+|`rpi-site`|**container4-cert.pem**, **container4-key.pem**, **CA.pem**|
+
+2. At the root folder of the repository create `.env` file containing the following variables:
+
+- `NATS_TOKEN`=**your token here**
+- `NATS_ADDRESS`=nats
+- `SHARE_NAME`=**file share name**
+- `SA_NAME`=**storage account name here**
+- `JS_KEY`=**JetStream encryption key**
+- `REDIS_PASSWORD`=**your Redis password here**
+- `REDIS_ADDRESS`=redis
+- `TELEGRAM_KEY`=**Telegram API key here**
+- `TELEGRAM_CHAT`=**Telegram chat ID here**
+- `AZURE_CONTEXT`=**docker context used for Azure**
+
+Then, you may run the following command to provision the whole infrastructure:
 
 ```bash
-# checkout to RPI-dev branch
-git checkout RPI-dev
+# change permission for script
+chmod +x ./infra/createInfraAndDeploy.sh
 
-# change to correct directory
-cd rpi/feature-extractor
-
-# build the image (this can take a while)
-docker build -t feature_extractor:1.0 .
+# run the provisioning script (this may take a while)
+./infra/createInfraAndDeploy.sh
 ```
+`createInfraAndDeploy.sh`:
 
-Having built the image, you may start the container with FeatureExtractor. Be sure to input your auth token for NATS and NATS container name:
+1. Switches Docker context to the one used for Azure deployment and logs out the user to avoid deployment conflicts.
+2. Creates Resource group "RPI-Cloud".
+3. Creates Storage Account called $SA_NAME.
+4. Creates File Share called $SHARE_NAME.
+5. Uploads all config files as well as certs to $SHARE_NAME.
+6. Runs `docker compose up` to deploy the infra.
 
-```bash
-docker run --network nats feature_extractor:1.0 -e NATS_TOKEN='your_auth_token_here' -e NATS_ADDRESS='nats_container_name_here'
-```
-
-This will NOT run the container in the detached mode. You will see outputs of the script in your terminal. 
-
-**For container to work properly, NATS container must be started first!**
+The IP address needed to connect to NATS can be found in section *Properties* in deployed Azure Conatiner Instances NavBar.
 
 # TODO
 - [ ] Upload mechanical models and blueprints.
 - [ ] Update the docs for engineering thesis layout - both READMEs and in code.
-- [ ] Fix wiring in RPI.
-- [ ] Test Telegram messaging service.
+- [x] Fix wiring in RPI.
+- [x] Test Telegram messaging service.
 - [x] Integrate output-service with Telegram.
 - [x] Create new ml_predictor image with the latest model.
 - [x] Add service to compare and average four previous predicted labels.

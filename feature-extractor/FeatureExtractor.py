@@ -4,11 +4,13 @@ import pandas as pd
 import base64
 import ssl
 import os
+import time
 from SignalFeatures import *
 
 # read env variables needed to connect to NATS
 TOKEN = os.getenv('NATS_TOKEN')
 NATS_ADDRESS = os.getenv('NATS_ADDRESS')
+WINDOW_LENGTH=500
 
 # async communication needed for NATS
 async def main():
@@ -32,9 +34,9 @@ async def main():
     while True:
         windowDf = pd.DataFrame(columns=['x', 'y', 'z'])
         try:
-            x_data = await asyncio.wait_for(sub_x.fetch(500), timeout=300.0)
-            y_data = await asyncio.wait_for(sub_y.fetch(500), timeout=300.0)
-            z_data = await asyncio.wait_for(sub_z.fetch(500), timeout=300.0)
+            x_data = await asyncio.wait_for(sub_x.fetch(WINDOW_LENGTH), timeout=300.0)
+            y_data = await asyncio.wait_for(sub_y.fetch(WINDOW_LENGTH), timeout=300.0)
+            z_data = await asyncio.wait_for(sub_z.fetch(WINDOW_LENGTH), timeout=300.0)
         except asyncio.TimeoutError:
             print("No new messages, sleeping for 30 seconds.")
             await asyncio.sleep(30)
@@ -44,6 +46,10 @@ async def main():
             x_data_list = [m.data.decode() for m in x_data]
             y_data_list = [m.data.decode() for m in y_data]
             z_data_list = [m.data.decode() for m in z_data]
+
+            if (len(x_data_list) != WINDOW_LENGTH) or (len(y_data_list) != WINDOW_LENGTH) or (len(z_data_list) != WINDOW_LENGTH):
+                time.sleep(30)
+                continue
 
             print("=======\nDecoded data")
             print(x_data_list)

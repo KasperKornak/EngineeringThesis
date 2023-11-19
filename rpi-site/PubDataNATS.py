@@ -13,7 +13,7 @@ NATS_TOKEN = os.getenv("NATS_TOKEN")
 # setup acceleration rate
 accel_rate = Rate.RATE_300_HZ
 
-# setup i2x and accelerometer
+# setup i2c and accelerometer
 i2c = board.I2C()
 accel_gyro = LSM6DS(i2c)
 accel_gyro.accelerometer_data_rate = accel_rate

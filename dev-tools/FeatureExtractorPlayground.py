@@ -9,13 +9,12 @@ async def main():
     nc = await nats.connect("nats://haslo@localhost:4222")
     js = nc.jetstream()
 
-    # probably need to change to ephemeral consumers
     # create consumers
     sub_x = await js.pull_subscribe("x","RPI-sub-x","RPI")
     sub_y = await js.pull_subscribe("y","RPI-sub-y","RPI")
     sub_z = await js.pull_subscribe("z","RPI-sub-z","RPI")
 
-
+    # create DataFrame for incoming data
     windowDf = pd.DataFrame(columns=['x', 'y', 'z'])
     x_data = await sub_x.fetch(500, timeout=None)
     y_data = await sub_y.fetch(500, timeout=None)

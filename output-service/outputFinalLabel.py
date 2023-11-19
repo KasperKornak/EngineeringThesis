@@ -46,8 +46,8 @@ async def main():
             # consume latest activity label with a timeout
             latest_label = await asyncio.wait_for(sub_y.fetch(1), timeout=300.0)
         except asyncio.TimeoutError:
-            print("No new messages, sleeping for 30 seconds.")
-            await asyncio.sleep(30)  
+            print("No new messages, sleeping for 2 seconds.")
+            await asyncio.sleep(2)  
             continue  
 
         try:
@@ -102,6 +102,10 @@ async def main():
             
             ## terminate current iteration if both labels in comparison_list have the same counts
             if (string_counts.most_common(2)[0][1] == string_counts.most_common(2)[1][1]) and ("placeholder" not in comparison_list):
+                # update redis with latest predicted label
+                r.set("first_val", encoded_latest_label)
+                r.set("second_val", first_val)
+                r.set("third_val", second_val)
                 continue
             
             print("=======\nMost common strings")

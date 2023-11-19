@@ -8,15 +8,15 @@
     "predictions",
     "output"
   ],
-  "retention": "limits",
+  "retention": "workqueue",
   "max_consumers": -1,
   "max_msgs_per_subject": -1,
   "max_msgs": -1,
   "max_bytes": -1,
-  "max_age": 600000000000,
+  "max_age": 30000000000,
   "max_msg_size": -1,
   "storage": "file",
   "discard": "old",
   "num_replicas": 1,
-  "duplicate_window": 120000000000
+  "duplicate_window": 29000000000
 }
