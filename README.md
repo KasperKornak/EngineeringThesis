@@ -164,8 +164,8 @@ chmod +x ./infra/createInfraAndDeploy.sh
 The IP address needed to connect to NATS can be found in section *Properties* in deployed Azure Conatiner Instances NavBar.
 
 # TODO
-- [ ] Upload mechanical models and blueprints.
-- [ ] Update the docs for engineering thesis layout - both READMEs and in code.
+- [x] Upload mechanical models and blueprints.
+- [x] Update the docs for engineering thesis layout - both READMEs and in code.
 - [x] Fix wiring in RPI.
 - [x] Test Telegram messaging service.
 - [x] Integrate output-service with Telegram.
